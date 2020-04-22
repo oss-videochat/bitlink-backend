@@ -1,6 +1,6 @@
 {
   "name": "video-web-app-backend",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "debug": "ts-node ./bin/www",
@@ -20,7 +20,7 @@
     "pidusage": "latest",
     "socket.io": "^2.3.0",
     "uuid": "^7.0.3",
-    "video-web-app-frontend": "github:oos-videochat/video-web-app#v1.0",
+    "video-web-app-frontend": "github:oos-videochat/video-web-app#release-0.1",
     "ajv": "latest"
   },
   "devDependencies": {
