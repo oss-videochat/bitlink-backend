@@ -14,7 +14,7 @@ app.use(express.static(__dirname + '/../node_modules/video-web-app-frontend/buil
 
 
 app.all(['/', '/join','/join/*', '/create'], ((req, res, next) => {
-    res.sendFile(__dirname + '/../node_modules/video-web-app-frontend/build/index.html');
+    res.sendFile(path.resolve(__dirname + '/../node_modules/video-web-app-frontend/build/index.html'));
 }));
 
 export default app;
