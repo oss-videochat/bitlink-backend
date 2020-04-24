@@ -106,23 +106,8 @@ class Room extends Event.EventEmitter {
         this.broadcast("new-participant", [participant], participant.toSummary());
     }
 
-
-    removeParticipant(participant: Participant) {
-        const participantsIndex = this.participants.findIndex(joinedParticipant => joinedParticipant.id === participant.id);
-        const waitingRoomIndex = this.waitingRoom.findIndex(patentParticipant => patentParticipant.id === participant.id);
-
-        if (participantsIndex >= 0) {
-            this.participants.splice(participantsIndex, 1);
-        }
-
-        if (waitingRoomIndex >= 0) {
-            this.waitingRoom.splice(waitingRoomIndex, 1);
-        }
-    }
-
     leaveParticipant(participant: Participant) {
         participant.leave();
-        this.removeParticipant(participant);
         console.log("left");
         this.broadcast("participant-left", [], participant.id);
     }
@@ -245,8 +230,8 @@ class Room extends Event.EventEmitter {
                 return;
             }
             if(newSettings.name !== this.settings.name){
-                this.broadcast("update-room-settings", this.participants.filter(participant1 => participant1.isHost), this.makeSettingsSafe(newSettings));
-                this.broadcast("update-room-settings-host", this.participants.filter(participant1 => participant1.isHost), newSettings);
+                this.broadcast("update-room-settings", this.getConnectedParticipants().filter(participant1 => participant1.isHost), this.makeSettingsSafe(newSettings));
+                this.broadcast("update-room-settings-host", this.getConnectedParticipants().filter(participant1 => participant1.isHost), newSettings);
             }
 
             this.settings = newSettings;
@@ -335,7 +320,7 @@ class Room extends Event.EventEmitter {
         });
 
         participant.socket.once("transports-ready", () => {
-            this.participants.forEach(participantJoined => {
+            this.getConnectedParticipants().forEach(participantJoined => {
                 if (participantJoined.id === participant.id) {
                     return;
                 }
@@ -389,7 +374,7 @@ class Room extends Event.EventEmitter {
     }
 
     _handleNewProducer(theParticipant, kind: "video" | "audio") {
-        this.participants.forEach(aParticpant => {
+        this.getConnectedParticipants().forEach(aParticpant => {
             if (aParticpant.id === theParticipant.id) {
                 return;
             }
@@ -423,7 +408,7 @@ class Room extends Event.EventEmitter {
         if (toId === "everyone") {
             message = new Message(from, toId, content);
         } else {
-            const toParticipant: Participant = this.participants.find(participant => participant.id === toId);
+            const toParticipant: Participant = this.getConnectedParticipants().find(participant => participant.id === toId);
             if (!toParticipant) {
                 return {success: false, error: "Could not find to participant", status: 404}
             }
@@ -489,7 +474,7 @@ class Room extends Event.EventEmitter {
             id: this.id,
             idHash: this.idHash,
             name: this.settings.name,
-            participants: this.getConnectedParticipants().map(participantInRoom => {
+            participants: this.participants.map(participantInRoom => {
                 const obj: any = {
                     isMe: participantInRoom.id === currentParticipant.id,
                     ...participantInRoom.toSummary()
