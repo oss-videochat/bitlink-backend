@@ -204,7 +204,7 @@ class Room extends Event.EventEmitter {
 
         participant.socket.on("change-name", (newName, cb: APIResponseCallback) => {
             participant.name = newName;
-            this.broadcast("participant-changed-name", [participant],participant.id, participant.name);
+            this.broadcast("participant-changed-name", [participant], participant.id, participant.name);
             cb({
                 success: true,
                 status: 200,
@@ -221,7 +221,7 @@ class Room extends Event.EventEmitter {
                 });
                 return;
             }
-            if(!UpdateRoomSettingsValidation(newSettings)){
+            if (!UpdateRoomSettingsValidation(newSettings)) {
                 cb({
                     success: false,
                     status: 400,
@@ -229,7 +229,7 @@ class Room extends Event.EventEmitter {
                 });
                 return;
             }
-            if(newSettings.name !== this.settings.name){
+            if (newSettings.name !== this.settings.name) {
                 this.broadcast("update-room-settings", this.getConnectedParticipants().filter(participant1 => participant1.isHost), this.makeSettingsSafe(newSettings));
                 this.broadcast("update-room-settings-host", this.getConnectedParticipants().filter(participant1 => participant1.isHost), newSettings);
             }
@@ -301,8 +301,8 @@ class Room extends Event.EventEmitter {
         });
 
 
-        participant.socket.on("connect-transport", async (transportId, dtlsParameters, cb: (response: APIResponse) => void) => {
-            const transport = participant.mediasoupPeer.getTransport(transportId);
+        participant.socket.on("connect-transport", (transportId, dtlsParameters, cb: (response: APIResponse) => void) => {
+            const transport: mediasoup.types.Transport = participant.mediasoupPeer.getTransport(transportId);
             if (!transport) {
                 cb({
                     success: false,
@@ -311,12 +311,31 @@ class Room extends Event.EventEmitter {
                 });
                 return;
             }
-            await transport.connect({dtlsParameters});
-            cb({
-                success: true,
-                error: null,
-                status: 200,
-            });
+            if (transport.appData.connected) {
+                cb({
+                    success: false,
+                    error: "Transport already connected",
+                    status: 409,
+                });
+                return;
+            }
+            transport.connect({dtlsParameters})
+                .then(() => {
+                    transport.appData.connected = true;
+                    cb({
+                        success: true,
+                        error: null,
+                        status: 200,
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    cb({
+                        success: false,
+                        error: "Unknown server error occurred. Check server log.",
+                        status: 500,
+                    });
+                });
         });
 
         participant.socket.once("transports-ready", () => {
@@ -493,7 +512,7 @@ class Room extends Event.EventEmitter {
         }
     }
 
-    makeSettingsSafe(settings: RoomSettings){
+    makeSettingsSafe(settings: RoomSettings) {
         return {
             name: settings.name
         }
