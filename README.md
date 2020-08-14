@@ -1,3 +1,6 @@
+# This repo has been achrived in favor of https://github.com/oss-videochat/bitlink
+
+
 # Video Web App Backend
 
 Contains the code for the backend of the video conference call app.
