@@ -1,4 +1,4 @@
-# This repo has been achrived in favor of https://github.com/oss-videochat/bitlink
+# This repo has been archived in favor of https://github.com/oss-videochat/bitlink
 
 
 # Video Web App Backend
